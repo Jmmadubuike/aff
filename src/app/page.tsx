@@ -82,13 +82,13 @@ export default function Home() {
             Attend the Event
           </Link>
           <Link
-            href="/apply-talent"
+            href="/contact"
             className="px-8 py-3 rounded-md font-semibold border border-gray-600 text-white hover:bg-gray-800 transition"
           >
             Designers & Models Apply
           </Link>
           <Link
-            href="/partner-vendor"
+            href="/contact"
             className="px-8 py-3 rounded-md font-semibold border border-gray-600 text-white hover:bg-gray-800 transition"
           >
             Vendors & Exhibitors

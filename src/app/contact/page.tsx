@@ -1,6 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import {
+    FaFacebookF,
+    FaTwitter,
+    FaInstagram,
+    FaLinkedinIn,
+    FaYoutube,
+} from "react-icons/fa";
 
 export default function ContactForm() {
     const gold = "#CDA23B";
@@ -41,11 +48,11 @@ export default function ContactForm() {
         <section className="w-full py-24 bg-[#1A1A1A] text-white">
             <div className="max-w-2xl mx-auto px-6">
                 {/* Header */}
-                <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: gold }}>
-                    Register / Contact
+                <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center md:text-left" style={{ color: gold }}>
+                    Join the <span className="italic">Afro Fashion Revolution</span>
                 </h2>
                 <p className="text-gray-400 mb-10 leading-relaxed text-center md:text-left">
-                    Join <span className="font-semibold">Afro Fashion Fest 2025</span>. Fill out the form below, and our team will reach out to you.
+                    Experience the pinnacle of style and creativity at <span className="font-semibold">Afro Fashion Fest 2025</span>. Fill out the form below, and our elite team will connect with you to unlock exclusive opportunities.
                 </p>
 
                 {/* Form */}
@@ -141,6 +148,25 @@ export default function ContactForm() {
                         </p>
                     )}
                 </form>
+
+                {/* Social Media Icons */}
+                <div className="flex justify-center mt-10 gap-6 text-gray-400 hover:text-white transition-colors">
+                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">
+                        <FaFacebookF size={20} />
+                    </a>
+                    <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400">
+                        <FaTwitter size={20} />
+                    </a>
+                    <a href="https://instagram.com/afrofashionfest" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500">
+                        <FaInstagram size={20} />
+                    </a>
+                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-700">
+                        <FaLinkedinIn size={20} />
+                    </a>
+                    <a href="https://youtube.com/@fivestarsdigitalmedia.com" target="_blank" rel="noopener noreferrer" className="hover:text-red-600">
+                        <FaYoutube size={20} />
+                    </a>
+                </div>
             </div>
         </section>
     );
