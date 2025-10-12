@@ -3,24 +3,22 @@
 import Link from 'next/link'
 import Sponsors from '@/components/Sponsors'
 import { motion } from 'framer-motion'
+import OfficialPartnerTag from '@/components/OfficialPartnerTag'
 
 export default function Home() {
   const gold = '#CDA23B'
-  const charcoal = '#1A1A1A'
-
   const fadeUp = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0 },
   }
 
   return (
-    <main className="bg-[#1A1A1A] text-white antialiased font-sans">
-
+    <main className="bg-[#0E0E0E] text-white antialiased font-sans overflow-hidden">
       {/* HERO SECTION */}
       <section
-        className="relative w-full min-h-screen flex flex-col justify-center items-center text-center overflow-hidden"
+        className="relative w-full min-h-screen flex flex-col justify-center items-center text-center px-6"
         style={{
-          backgroundImage: `radial-gradient(circle at top left, rgba(205,162,59,0.05), transparent), linear-gradient(180deg, #1A1A1A 0%, #111 100%)`,
+          backgroundImage: `radial-gradient(circle at 20% 20%, rgba(205,162,59,0.08), transparent), linear-gradient(180deg, #0E0E0E 0%, #111 100%)`,
         }}
       >
         <motion.h1
@@ -28,8 +26,8 @@ export default function Home() {
           animate="visible"
           variants={fadeUp}
           transition={{ duration: 1 }}
-          className="text-5xl md:text-7xl font-extrabold mb-2 tracking-wide"
-          style={{ fontFamily: `'Playfair Display', serif`, color: 'white' }}
+          className="text-5xl md:text-7xl font-extrabold mb-4 leading-tight"
+          style={{ fontFamily: `'Playfair Display', serif` }}
         >
           Afro Fashion Fest <span style={{ color: gold }}>2025</span>
         </motion.h1>
@@ -39,34 +37,29 @@ export default function Home() {
           animate="visible"
           variants={fadeUp}
           transition={{ duration: 1, delay: 0.2 }}
-          className="text-sm uppercase tracking-widest text-gray-400 mb-6 block"
+          className="text-sm uppercase tracking-[0.3em] text-gray-400 mb-8"
         >
-          Two-Day Experience · Nov 27–28 · Umuahia, Nigeria
+          November 27–28 · Umuahia, Nigeria
         </motion.span>
 
-        {/* Official Media Partner Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="inline-block px-4 py-1 mb-6 rounded-full border text-sm text-white font-medium tracking-wide"
-          style={{ background: 'rgba(205,162,59,0.05)', borderColor: gold }}
-        >
-          Official Media Partner — <span style={{ color: gold }}>Five Stars Digital Media</span>
-        </motion.div>
+        {/* Partner Tag */}
+        <OfficialPartnerTag />
 
+        {/* Subheadline */}
         <motion.p
           initial="hidden"
           animate="visible"
           variants={fadeUp}
           transition={{ duration: 1, delay: 0.4 }}
-          className="text-lg md:text-xl max-w-3xl mx-auto mb-12 leading-relaxed text-gray-300"
+          className="text-lg md:text-xl max-w-2xl mx-auto mb-12 text-gray-300 leading-relaxed"
         >
-          Where <span style={{ color: gold }}>high fashion</span> meets <span className="font-medium text-white">culture</span>, <span className="font-medium text-white">technology</span>, and <span className="font-medium text-white">storytelling</span>.<br />
-          Proudly powered by <span style={{ color: gold, fontWeight: 600 }}>Five Stars Digital Media</span>, the Official Media Partner.
+          Where <span style={{ color: gold }}>fashion</span> converges with{' '}
+          <span className="text-white font-semibold">culture</span>,{' '}
+          <span className="text-white font-semibold">technology</span>, and{' '}
+          <span className="text-white font-semibold">storytelling</span>.
         </motion.p>
 
-        {/* CTA Buttons */}
+        {/* CTA */}
         <motion.div
           initial="hidden"
           animate="visible"
@@ -76,20 +69,20 @@ export default function Home() {
         >
           <Link
             href="/register"
-            className="px-8 py-3 rounded-md font-semibold transition-all duration-300"
-            style={{ background: gold, color: '#000' }}
+            className="px-8 py-3 rounded-md font-semibold text-black transition-all duration-300 hover:scale-[1.02]"
+            style={{ background: gold }}
           >
             Attend the Event
           </Link>
           <Link
             href="/contact"
-            className="px-8 py-3 rounded-md font-semibold border border-gray-600 text-white hover:bg-gray-800 transition"
+            className="px-8 py-3 rounded-md font-semibold border border-gray-600 text-white hover:bg-gray-900 transition"
           >
             Designers & Models Apply
           </Link>
           <Link
             href="/contact"
-            className="px-8 py-3 rounded-md font-semibold border border-gray-600 text-white hover:bg-gray-800 transition"
+            className="px-8 py-3 rounded-md font-semibold border border-gray-600 text-white hover:bg-gray-900 transition"
           >
             Vendors & Exhibitors
           </Link>
@@ -100,62 +93,85 @@ export default function Home() {
             Get Event Updates
           </Link>
         </motion.div>
+
+        {/* Subtle Gradient Overlay */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black via-transparent to-transparent opacity-50"></div>
       </section>
 
-      {/* EVENT SCHEDULE */}
-      <section className="py-24 text-center max-w-5xl mx-auto">
+      {/* EXPERIENCE / SCHEDULE */}
+      <section className="py-24 text-center max-w-6xl mx-auto px-6">
         <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true }}
+          variants={fadeUp}
           transition={{ duration: 0.8 }}
-          className="text-4xl font-bold mb-12"
-          style={{ color: gold }}
+          className="text-4xl md:text-5xl font-bold mb-16"
+          style={{ color: gold, fontFamily: `'Playfair Display', serif` }}
         >
-          Event Schedule
+          The Experience
         </motion.h2>
-        <div className="flex flex-col md:flex-row justify-center gap-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="bg-[#222] p-8 rounded-lg shadow-lg border border-gray-700 flex-1 hover:shadow-[0_0_40px_rgba(205,162,59,0.4)] transition"
-          >
-            <h3 className="text-2xl font-semibold mb-2" style={{ color: gold }}>Nov 27</h3>
-            <p className="text-gray-300">Masterclass Day — Learn, Inspire, Network</p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-[#222] p-8 rounded-lg shadow-lg border border-gray-700 flex-1 hover:shadow-[0_0_40px_rgba(205,162,59,0.4)] transition"
-          >
-            <h3 className="text-2xl font-semibold mb-2" style={{ color: gold }}>Nov 28</h3>
-            <p className="text-gray-300">Runway Show — Fashion, Culture, & Celebration</p>
-          </motion.div>
+
+        <div className="grid md:grid-cols-2 gap-10">
+          {[
+            {
+              day: 'Nov 27',
+              title: 'Masterclass Day',
+              desc: 'Learn · Inspire · Network',
+              href: '/masterclass',
+            },
+            {
+              day: 'Nov 28',
+              title: 'Runway Show',
+              desc: 'Fashion · Culture · Celebration',
+              href: '/runway',
+            },
+          ].map((item, index) => (
+            <motion.div
+              key={index}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeUp}
+              transition={{ duration: 0.6, delay: index * 0.2 }}
+            >
+              <Link
+                href={item.href}
+                className="block bg-[#181818] p-10 rounded-2xl border border-gray-800 hover:border-[#CDA23B]/60 hover:shadow-[0_0_30px_rgba(205,162,59,0.25)] transition-all group"
+              >
+                <h3 className="text-2xl font-semibold mb-3" style={{ color: gold }}>
+                  {item.day}
+                </h3>
+                <p className="text-xl font-medium mb-2 group-hover:text-white transition">{item.title}</p>
+                <p className="text-gray-400 group-hover:text-gray-300">{item.desc}</p>
+              </Link>
+            </motion.div>
+          ))}
+
         </div>
       </section>
 
-      {/* MEDIA / HIGHLIGHTS */}
-      <section className="py-24 text-center relative">
+      {/* MEDIA HIGHLIGHTS */}
+      <section className="py-24 text-center relative px-6">
         <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true }}
+          variants={fadeUp}
           transition={{ duration: 0.8 }}
-          className="text-4xl font-bold mb-12"
-          style={{ color: gold }}
+          className="text-4xl md:text-5xl font-bold mb-12"
+          style={{ color: gold, fontFamily: `'Playfair Display', serif` }}
         >
           Event Highlights
         </motion.h2>
+
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true }}
+          variants={fadeUp}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative aspect-video mx-auto w-full max-w-4xl overflow-hidden rounded-lg shadow-xl border border-gray-700"
+          className="relative aspect-video mx-auto w-full max-w-5xl overflow-hidden rounded-2xl shadow-xl border border-gray-800"
         >
           <iframe
             title="Five Stars Digital Media — Playlist"
@@ -164,22 +180,23 @@ export default function Home() {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           ></iframe>
-          {/* Optional overlay badge */}
-          <span className="absolute top-2 left-2 bg-[#CDA23B] text-black text-xs font-semibold px-2 py-1 rounded">
+          <span className="absolute top-3 left-3 bg-[#CDA23B] text-black text-xs font-semibold px-3 py-1 rounded">
             Official Media Partner
           </span>
         </motion.div>
+
       </section>
 
       {/* SPONSORS */}
-      <section className="py-24 bg-[#111] text-center">
+      <section className="py-24 bg-[#101010] text-center border-t border-gray-800">
         <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true }}
+          variants={fadeUp}
           transition={{ duration: 0.8 }}
-          className="text-3xl font-bold mb-12"
-          style={{ color: gold }}
+          className="text-3xl md:text-4xl font-bold mb-12"
+          style={{ color: gold, fontFamily: `'Playfair Display', serif` }}
         >
           Our Sponsors
         </motion.h2>

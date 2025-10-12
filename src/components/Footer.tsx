@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { FiYoutube, FiInstagram, FiArrowUp } from "react-icons/fi";
+import OfficialPartnerTag from "./OfficialPartnerTag";
 
 export default function Footer() {
   const gold = "#CDA23B";
@@ -23,7 +24,7 @@ export default function Footer() {
         <div className="text-center md:text-left">
           © {new Date().getFullYear()}{" "}
           <span style={{ color: gold }}>Afro Fashion Fest 2025</span> — Produced by{" "}
-          <span className="text-white font-semibold">Five Stars Digital Media</span>
+          <OfficialPartnerTag />
         </div>
 
         {/* Social Icons */}

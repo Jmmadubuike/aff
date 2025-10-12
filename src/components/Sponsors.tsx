@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import OfficialPartnerTag from './OfficialPartnerTag'
 
 export default function Sponsors() {
   const gold = '#CDA23B'
@@ -22,7 +23,7 @@ export default function Sponsors() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        Sponsors & Partners
+        Sponsors & Partners Of Afro Fashion Fest (AFF)
       </motion.h4>
 
       {/* Logos */}
@@ -55,7 +56,8 @@ export default function Sponsors() {
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.8 }}
       >
-        Proudly powered and captured by <span style={{ color: gold }}>Five Stars Digital Media</span>
+        Proudly powered and captured by <span style={{ color: gold }}><OfficialPartnerTag />
+        </span>
       </motion.p>
     </section>
   )
