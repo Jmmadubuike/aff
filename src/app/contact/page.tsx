@@ -1,219 +1,122 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  FaFacebookF,
-  FaTwitter,
-  FaInstagram,
-  FaLinkedinIn,
-  FaYoutube,
-} from "react-icons/fa";
+import React, { useState } from "react";
+import api from "../../services/api"; // ✅ use your configured axios instance
 
-export default function ContactForm() {
-  const gold = "#CDA23B";
-  const router = useRouter();
+const ContactUs = () => {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [role, setRole] = useState("Attendee");
-  const [message, setMessage] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const GOOGLE_SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycby41qg4i4VqMcSDF_4iuBcMfF7rn0EDeq2HqwrqPFO-XJs1e0RyxDoJ9zGyb-w3-dg-/exec";
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("sending");
+    setLoading(true);
+    setSubmitted(false);
 
     try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, role, message }),
-      });
+      const res = await api.post("/api/v1/contacts", form);
 
-      setStatus("success");
-
-      // Clear fields
-      setName("");
-      setEmail("");
-      setPhone("");
-      setRole("Attendee");
-      setMessage("");
-
-      // Redirect based on role
-      setTimeout(() => {
-        if (role === "Attendee") router.push("/tickets/attendee");
-        else if (role === "Vendor") router.push("/tickets/vendor");
-        else if (role === "Designer" || role === "Model") router.push("/thank-you");
-        else router.push("/tickets/attendee");
-      }, 1500);
-    } catch {
-      setStatus("error");
+      if (res.data?.status) {
+        setSubmitted(true);
+        setForm({ name: "", email: "", subject: "", message: "" });
+      } else {
+        alert(res.data?.message || "Failed to send message.");
+      }
+    } catch (err: any) {
+      console.error("Error submitting contact form:", err);
+      alert(
+        err?.response?.data?.message ||
+        "Something went wrong. Please try again later."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <section className="w-full py-24 bg-[#1A1A1A] text-white">
-      <div className="max-w-2xl mx-auto px-6">
-        {/* Header */}
-        <h2
-          className="text-3xl md:text-4xl font-bold mb-4 text-center md:text-left"
-          style={{ color: gold }}
-        >
-          Join the <span className="italic">Afro Fashion Revolution</span>
-        </h2>
-        <p className="text-gray-400 mb-10 leading-relaxed text-center md:text-left">
-          Experience the pinnacle of style and creativity at{" "}
-          <span className="font-semibold">Afro Fashion Fest 2025</span>. Fill out
-          the form below, and our elite team will connect with you to unlock
-          exclusive opportunities.
-        </p>
+    <section className="min-h-screen bg-black text-white px-6 py-20 flex flex-col items-center">
+      <h1 className="text-5xl font-bold text-center mb-6 tracking-tight">
+        Contact Us
+      </h1>
+      <p className="text-center text-gray-400 max-w-3xl mb-12 text-lg">
+        Have questions, feedback, or need assistance? Our team is here to help.
+        Fill out the form below and we’ll get back to you promptly.
+      </p>
 
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 bg-gray-900 p-10 rounded-2xl shadow-2xl border border-gray-800"
-        >
-          {/* Name */}
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Full Name</label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your full name"
-              className="w-full rounded-md px-4 py-3 bg-black border border-gray-700 focus:border-gold focus:ring focus:ring-gold/30 outline-none transition"
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full rounded-md px-4 py-3 bg-black border border-gray-700 focus:border-gold focus:ring focus:ring-gold/30 outline-none transition"
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Phone</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+234 000 0000 000"
-              className="w-full rounded-md px-4 py-3 bg-black border border-gray-700 focus:border-gold focus:ring focus:ring-gold/30 outline-none transition"
-            />
-          </div>
-
-          {/* Role */}
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Role</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full rounded-md px-4 py-3 bg-black border border-gray-700 focus:border-gold focus:ring focus:ring-gold/30 outline-none transition"
-            >
-              <option>Attendee</option>
-              <option>Model</option>
-              <option>Designer</option>
-              <option>Vendor</option>
-              <option>Media</option>
-            </select>
-          </div>
-
-          {/* Message */}
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">
-              Message (optional)
-            </label>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Your message..."
-              className="w-full rounded-md px-4 py-3 bg-black border border-gray-700 focus:border-gold focus:ring focus:ring-gold/30 outline-none transition resize-none"
-              rows={4}
-            />
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={status === "sending"}
-            className="w-full py-3 rounded-md font-semibold text-black hover:scale-105 transition-transform"
-            style={{ background: gold }}
-          >
-            {status === "sending" ? "Sending..." : "Submit"}
-          </button>
-
-          {/* Feedback */}
-          {status === "success" && (
-            <p className="text-green-400 mt-2 text-center font-medium">
-              Thank you! Redirecting to your ticket...
-            </p>
-          )}
-          {status === "error" && (
-            <p className="text-red-400 mt-2 text-center font-medium">
-              Something went wrong. Please try again later.
-            </p>
-          )}
-        </form>
-
-        {/* Social Media Icons */}
-        <div className="flex justify-center mt-10 gap-6 text-gray-400 hover:text-white transition-colors">
-          <a
-            href="https://facebook.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-blue-600"
-          >
-            <FaFacebookF size={20} />
-          </a>
-          <a
-            href="https://twitter.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-blue-400"
-          >
-            <FaTwitter size={20} />
-          </a>
-          <a
-            href="https://instagram.com/afrofashionfest"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-pink-500"
-          >
-            <FaInstagram size={20} />
-          </a>
-          <a
-            href="https://linkedin.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-blue-700"
-          >
-            <FaLinkedinIn size={20} />
-          </a>
-          <a
-            href="https://youtube.com/@fivestarsdigitalmedia.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-red-600"
-          >
-            <FaYoutube size={20} />
-          </a>
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-3xl flex flex-col gap-6 bg-[#111] border border-white rounded-2xl p-10 shadow-[0_0_25px_rgba(255,215,0,0.1)]"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <input
+            type="text"
+            name="name"
+            placeholder="Your Name"
+            value={form.name}
+            onChange={handleChange}
+            required
+            className="p-4 rounded-lg bg-black border border-white text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Your Email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            className="p-4 rounded-lg bg-black border border-white text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          />
         </div>
-      </div>
+
+        <input
+          type="text"
+          name="subject"
+          placeholder="Subject"
+          value={form.subject}
+          onChange={handleChange}
+          required
+          className="p-4 rounded-lg bg-black border border-white text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+        />
+
+        <textarea
+          name="message"
+          placeholder="Your Message"
+          value={form.message}
+          onChange={handleChange}
+          required
+          rows={6}
+          className="p-4 rounded-lg bg-black border border-white text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none"
+        ></textarea>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className={`${loading ? "bg-gray-500 cursor-not-allowed" : "bg-white hover:bg-yellow-400"
+            } text-black font-semibold px-8 py-3 rounded-lg shadow-[0_0_12px_rgba(255,215,0,0.3)] transition-all duration-300`}
+        >
+          {loading ? "Sending..." : "Send Message"}
+        </button>
+
+        {submitted && (
+          <p className="text-green-400 text-center mt-2">
+            ✅ Thank you! Your message has been sent.
+          </p>
+        )}
+      </form>
     </section>
   );
-}
+};
+
+export default ContactUs;

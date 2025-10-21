@@ -1,236 +1,198 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { FiDownload } from 'react-icons/fi';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
+import {
+  Users,
+  Package,
+  ShoppingCart,
+  BarChart2,
+  FolderOpenDot,
+  Mail,
+} from "lucide-react";
 
-const gold = '#CDA23B';
-const API_URL = '/api/submissions';
-
-export interface Submission {
-  timestamp: string;
-  name: string;
-  email: string;
-  phone: number | string;
-  role: string;
-  message: string;
+interface Order {
+  total?: number;
 }
 
-export default function AdminDashboard() {
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [filtered, setFiltered] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('All');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+interface DashboardStats {
+  users: number;
+  products: number;
+  orders: number;
+  revenue: number;
+  categories: number;
+  contacts: number;
+}
 
-  // Toast
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
-  const showToast = (type: 'success' | 'error', msg: string) => {
-    setToast({ type, msg });
-    setTimeout(() => setToast(null), 4000);
-  };
+const AdminDashboard = () => {
+  const { user, loading, logout } = useAuth();
+  const router = useRouter();
+  const [stats, setStats] = useState<DashboardStats>({
+    users: 0,
+    products: 0,
+    orders: 0,
+    revenue: 0,
+    categories: 0,
+    contacts: 0,
+  });
+  const [fetching, setFetching] = useState(true);
 
-  // Fetch submissions
+  // 🔒 Redirect unauthorized users
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch(API_URL, { cache: 'no-store' });
-        const json = (await res.json()) as { status: string; data: Submission[] };
-
-        const submissionsArray: Submission[] = Array.isArray(json.data)
-          ? json.data.filter((s: Submission) =>
-              s.name || s.email || s.phone || s.role || s.message
-            )
-          : [];
-
-        const formatted: Submission[] = submissionsArray.map((entry) => ({
-          ...entry,
-          timestamp:
-            typeof entry.timestamp === 'string'
-              ? new Date(entry.timestamp).toLocaleString()
-              : entry.timestamp,
-        }));
-
-        setSubmissions(formatted);
-        setFiltered(formatted);
-      } catch (err) {
-        console.error('❌ Failed to fetch submissions:', err);
-        showToast('error', 'Failed to load submissions');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Filter logic
-  useEffect(() => {
-    let temp = [...submissions];
-    if (roleFilter !== 'All') temp = temp.filter((s) => s.role === roleFilter);
-    if (search.trim() !== '') {
-      temp = temp.filter(
-        (s) =>
-          s.name.toLowerCase().includes(search.toLowerCase()) ||
-          s.email.toLowerCase().includes(search.toLowerCase()) ||
-          s.phone.toString().includes(search)
-      );
+    if (!loading) {
+      if (!user) router.replace("/auth/login");
+      else if (user.role !== "admin") router.replace("/");
     }
-    if (startDate) temp = temp.filter((s) => new Date(s.timestamp) >= new Date(startDate));
-    if (endDate) temp = temp.filter(
-      (s) => new Date(s.timestamp) <= new Date(endDate + 'T23:59:59')
-    );
-    setFiltered(temp);
-  }, [search, roleFilter, startDate, endDate, submissions]);
+  }, [user, loading, router]);
 
-  // Export CSV safely
-  const exportCSV = () => {
-    const headers = ['Timestamp', 'Name', 'Email', 'Phone', 'Role', 'Message'];
-    const rows = filtered.map((s) =>
-      [s.timestamp, s.name, s.email, s.phone, s.role, s.message].map((v) => `"${v}"`)
-    );
-    const csvContent = [headers.map((h) => `"${h}"`), ...rows].map((e) => e.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'submissions.csv';
-    a.click();
+  // 📊 Fetch dashboard stats
+  const fetchStats = async () => {
+    try {
+      setFetching(true);
+      const [usersRes, productsRes, ordersRes, categoriesRes, contactsRes] =
+        await Promise.all([
+          api.get("/api/v1/users", { withCredentials: true }),
+          api.get("/api/v1/products", { withCredentials: true }),
+          api.get("/api/v1/orders", { withCredentials: true }),
+          api.get("/api/v1/categories", { withCredentials: true }),
+          api.get("/api/v1/contacts", { withCredentials: true }),
+        ]);
+
+      const users = Array.isArray(usersRes.data.users)
+        ? usersRes.data.users.length
+        : 0;
+
+      const products =
+        productsRes.data.meta?.total ??
+        productsRes.data.data?.length ??
+        0;
+
+      const orders = Array.isArray(ordersRes.data.orders)
+        ? ordersRes.data.orders.length
+        : 0;
+
+      const categories = Array.isArray(categoriesRes.data.data)
+        ? categoriesRes.data.data.length
+        : 0;
+
+      const contacts = Array.isArray(contactsRes.data.data)
+        ? contactsRes.data.data.length
+        : 0;
+
+      // 💰 Safe and typed revenue calculation
+      const revenue =
+        ordersRes.data.orders?.reduce(
+          (acc: number, order: Order) => acc + (order.total ?? 0),
+          0
+        ) ?? 0;
+
+      setStats({
+        users,
+        products,
+        orders,
+        revenue,
+        categories,
+        contacts,
+      });
+    } catch (err) {
+      console.error("Failed to fetch stats:", err);
+    } finally {
+      setFetching(false);
+    }
   };
 
-  // Role badge colors
-  const roleColors: Record<string, string> = {
-    Attendee: '#6EE7B7',
-    Model: '#FBBF24',
-    Designer: '#60A5FA',
-    Vendor: '#F87171',
-    Media: '#C084FC',
-  };
+  // ⏱ Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (!loading && user?.role === "admin") {
+      fetchStats();
+      const interval = setInterval(fetchStats, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [loading, user]);
 
-  // Summary stats
-  const stats = submissions.reduce<Record<string, number>>((acc, s) => {
-    acc[s.role] = (acc[s.role] || 0) + 1;
-    return acc;
-  }, {});
+  if (loading || fetching || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white text-[12px]">
+        Loading...
+      </div>
+    );
+  }
+
+  const cardData = [
+    {
+      label: "Users",
+      value: stats.users.toLocaleString(),
+      icon: <Users className="w-6 h-6 text-teal-400" />,
+      href: "/admin/users",
+    },
+    {
+      label: "Products",
+      value: stats.products.toLocaleString(),
+      icon: <Package className="w-6 h-6 text-amber-400" />,
+      href: "/admin/products",
+    },
+    {
+      label: "Orders",
+      value: stats.orders.toLocaleString(),
+      icon: <ShoppingCart className="w-6 h-6 text-blue-400" />,
+      href: "/admin/orders",
+    },
+    {
+      label: "Revenue",
+      value: `₦${stats.revenue.toLocaleString()}`,
+      icon: <BarChart2 className="w-6 h-6 text-green-400" />,
+      href: "/admin/revenue",
+    },
+    {
+      label: "Categories",
+      value: stats.categories.toLocaleString(),
+      icon: <FolderOpenDot className="w-6 h-6 text-yellow-400" />,
+      href: "/admin/categories",
+    },
+    {
+      label: "Contacts",
+      value: stats.contacts.toLocaleString(),
+      icon: <Mail className="w-6 h-6 text-red-400" />,
+      href: "/admin/contact",
+    },
+  ];
+
+  const cardStyle =
+    "bg-gray-900 p-4 rounded-md flex flex-col items-start gap-2 cursor-pointer text-[12px] hover:bg-gray-800 transition";
 
   return (
-    <main className="min-h-screen bg-[#1A1A1A] text-white py-16 px-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <header className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-          <h1 className="text-4xl md:text-5xl font-bold" style={{ color: gold }}>
-            Submissions Dashboard
-          </h1>
-          <button
-            onClick={exportCSV}
-            className="px-6 py-3 font-semibold rounded-md hover:brightness-110 transition"
-            style={{ background: gold, color: '#000' }}
-          >
-            <FiDownload className="inline mr-2" /> Export CSV
-          </button>
-        </header>
-
-        {/* Summary */}
-        <div className="flex flex-wrap gap-4 mb-6">
-          {Object.entries(stats).map(([role, count]) => (
-            <span
-              key={role}
-              style={{ background: roleColors[role] || '#555' }}
-              className="px-3 py-1 rounded-full text-black font-semibold"
-            >
-              {role}: {count}
-            </span>
-          ))}
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <input
-            type="text"
-            placeholder="Search by name, email, phone..."
-            className="p-2 bg-[#333] rounded-md"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <select
-            className="p-2 bg-[#333] rounded-md"
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-          >
-            <option>All</option>
-            <option>Attendee</option>
-            <option>Model</option>
-            <option>Designer</option>
-            <option>Vendor</option>
-            <option>Media</option>
-          </select>
-          <input
-            type="date"
-            className="p-2 bg-[#333] rounded-md"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-          <input
-            type="date"
-            className="p-2 bg-[#333] rounded-md"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-
-        {/* Table */}
-        {loading ? (
-          <p className="text-gray-400 text-center text-lg">Loading submissions...</p>
-        ) : filtered.length === 0 ? (
-          <p className="text-gray-400 text-center text-lg">No submissions found.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-700">
-            <table className="min-w-full divide-y divide-gray-700">
-              <thead className="bg-[#111]">
-                <tr>
-                  <th className="px-6 py-3 text-left text-gray-400 uppercase text-sm">Time</th>
-                  <th className="px-6 py-3 text-left text-gray-400 uppercase text-sm">Name</th>
-                  <th className="px-6 py-3 text-left text-gray-400 uppercase text-sm">Email</th>
-                  <th className="px-6 py-3 text-left text-gray-400 uppercase text-sm">Phone</th>
-                  <th className="px-6 py-3 text-left text-gray-400 uppercase text-sm">Role</th>
-                  <th className="px-6 py-3 text-left text-gray-400 uppercase text-sm">Message</th>
-                </tr>
-              </thead>
-              <tbody className="bg-[#222] divide-y divide-gray-700">
-                {filtered.map((s, i) => (
-                  <tr key={i}>
-                    <td className="px-6 py-4">{s.timestamp}</td>
-                    <td className="px-6 py-4">{s.name}</td>
-                    <td className="px-6 py-4">{s.email}</td>
-                    <td className="px-6 py-4">{s.phone}</td>
-                    <td className="px-6 py-4">
-                      <span
-                        style={{ background: roleColors[s.role] || '#555' }}
-                        className="px-2 py-1 rounded-full text-black font-semibold"
-                      >
-                        {s.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">{s.message}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Toast */}
-        {toast && (
-          <div
-            className={`fixed bottom-6 right-6 px-6 py-4 rounded-md font-semibold ${
-              toast.type === 'success' ? 'bg-green-500 text-black' : 'bg-red-500 text-white'
-            }`}
-          >
-            {toast.msg}
-          </div>
-        )}
+    <div className="min-h-screen p-6 bg-black text-white text-[12px]">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-xl font-bold">Admin Dashboard</h1>
+        <button
+          onClick={logout}
+          className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded font-semibold text-[12px]"
+        >
+          Logout
+        </button>
       </div>
-    </main>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+        {cardData.map((card) => (
+          <div
+            key={card.label}
+            onClick={() => router.push(card.href)}
+            className={cardStyle}
+          >
+            <div className="flex items-center gap-2">
+              {card.icon}
+              <span className="text-sm font-semibold">{card.label}</span>
+            </div>
+            <p className="text-lg font-bold">{card.value}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
-}
+};
+
+export default AdminDashboard;

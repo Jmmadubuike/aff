@@ -1,207 +1,219 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import Sponsors from '@/components/Sponsors'
-import { motion } from 'framer-motion'
-import OfficialPartnerTag from '@/components/OfficialPartnerTag'
+import { useEffect, useState, useRef } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import api from "../services/api";
 
-export default function Home() {
-  const gold = '#CDA23B'
-  const fadeUp = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0 },
-  }
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  imageUrl: string;
+  category: string;
+}
+
+const categoriesList = [
+  { name: "Male", image: "/categories/3.jpg" },
+  { name: "Female", image: "/categories/5.jpg" },
+  { name: "Unisex", image: "/categories/4.jpg" },
+];
+
+export default function HomePage() {
+  const [featured, setFeatured] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { addToCart, cartItems } = useCart();
+  const router = useRouter();
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const res = await api.get("/api/v1/products?limit=8&minPrice=100000");
+        setFeatured(Array.isArray(res.data.data) ? res.data.data : []);
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFeatured();
+  }, []);
+
+  const handleView = (id: string) => {
+    if (!user) return router.push("/login");
+    router.push(`/products/${id}`);
+  };
+
+  const handleAddToCart = (product: Product) => {
+    if (!user) return router.push("/login");
+    addToCart({
+      productId: product._id,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      quantity: 1,
+    });
+  };
+
+  const getCartCount = (productId: string) => {
+    const item = cartItems.find((i) => i.productId === productId);
+    return item ? item.quantity : 0;
+  };
+
+  const scrollCarousel = (direction: "left" | "right") => {
+    if (!carouselRef.current) return;
+    const scrollAmount = 300;
+    carouselRef.current.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    backgroundColor: "rgba(255,255,255,0.06)",
+    color: "#FFFFFF",
+    border: "1px solid rgba(255,255,255,0.2)",
+    padding: "6px 12px",
+    borderRadius: "4px",
+    fontSize: "12px",
+    transition: "all 0.2s ease",
+  };
+
+  const hoverEffect = (e: any, opacity: string) => {
+    e.currentTarget.style.opacity = opacity;
+  };
 
   return (
-    <main className="bg-[#0E0E0E] text-white antialiased font-sans overflow-hidden">
-      {/* HERO SECTION */}
-      <section
-        className="relative w-full min-h-screen flex flex-col justify-center items-center text-center px-6"
-        style={{
-          backgroundImage: `radial-gradient(circle at 20% 20%, rgba(205,162,59,0.08), transparent), linear-gradient(180deg, #0E0E0E 0%, #111 100%)`,
-        }}
-      >
-        <motion.h1
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          transition={{ duration: 1 }}
-          className="text-5xl md:text-7xl font-extrabold mb-4 leading-tight"
-          style={{ fontFamily: `'Playfair Display', serif` }}
+    
+    <div className="min-h-screen relative bg-[#0A0A0A] text-white">
+
+      {/* Hero Section */}
+      <section className="relative flex flex-col items-center justify-center text-center py-32 px-4">
+        <h1 className="text-5xl sm:text-6xl font-serif font-bold mb-4 flex flex-wrap items-center justify-center gap-2">
+          Welcome to{" "}
+          <span className="bg-white text-black px-5 py-3 rounded-[1px] font-extrabold inline-block 
+                   text-[3.5rem] sm:text-[5rem] font-serif tracking-wide 
+                   shadow-lg shadow-yellow-200/40">
+            Spray n Sniff
+          </span>
+        </h1>
+
+        <p className="text-white/70 text-lg sm:text-xl mb-6">
+          Discover premium fragrances delivered to your doorstep.
+        </p>
+        <Link
+          href="/products"
+          className="px-8 py-4 border border-[#fff] text-white rounded-md shadow-lg hover:scale-105 transition-all hover:shadow-[#CDA23B]/50"
         >
-          Afro Fashion Fest <span style={{ color: gold }}>2025</span>
-        </motion.h1>
-
-        <motion.span
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="text-sm uppercase tracking-[0.3em] text-gray-400 mb-8"
-        >
-          November 27–28 · Umuahia, Nigeria
-        </motion.span>
-
-        {/* Partner Tag */}
-        <OfficialPartnerTag />
-
-        {/* Subheadline */}
-        <motion.p
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          transition={{ duration: 1, delay: 0.4 }}
-          className="text-lg md:text-xl max-w-2xl mx-auto mb-12 text-gray-300 leading-relaxed"
-        >
-          Where <span style={{ color: gold }}>fashion</span> converges with{' '}
-          <span className="text-white font-semibold">culture</span>,{' '}
-          <span className="text-white font-semibold">technology</span>, and{' '}
-          <span className="text-white font-semibold">storytelling</span>.
-        </motion.p>
-
-        {/* CTA */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          transition={{ duration: 1, delay: 0.6 }}
-          className="flex flex-wrap justify-center gap-4"
-        >
-          <Link
-            href="/register"
-            className="px-8 py-3 rounded-md font-semibold text-black transition-all duration-300 hover:scale-[1.02]"
-            style={{ background: gold }}
-          >
-            Attend the Event
-          </Link>
-          <Link
-            href="/contact"
-            className="px-8 py-3 rounded-md font-semibold border border-gray-600 text-white hover:bg-gray-900 transition"
-          >
-            Designers & Models Apply
-          </Link>
-          <Link
-            href="/contact"
-            className="px-8 py-3 rounded-md font-semibold border border-gray-600 text-white hover:bg-gray-900 transition"
-          >
-            Vendors & Exhibitors
-          </Link>
-          <Link
-            href="/subscribe"
-            className="px-8 py-3 rounded-md font-semibold text-gray-400 hover:text-white transition"
-          >
-            Get Event Updates
-          </Link>
-        </motion.div>
-
-        {/* Subtle Gradient Overlay */}
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black via-transparent to-transparent opacity-50"></div>
+          Shop Now
+        </Link>
       </section>
 
-      {/* EXPERIENCE / SCHEDULE */}
-      <section className="py-24 text-center max-w-6xl mx-auto px-6">
-        <motion.h2
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.8 }}
-          className="text-4xl md:text-5xl font-bold mb-16"
-          style={{ color: gold, fontFamily: `'Playfair Display', serif` }}
-        >
-          The Experience
-        </motion.h2>
-
-        <div className="grid md:grid-cols-2 gap-10">
-          {[
-            {
-              day: 'Nov 27',
-              title: 'Masterclass Day',
-              desc: 'Learn · Inspire · Network',
-              href: '/masterclass',
-            },
-            {
-              day: 'Nov 28',
-              title: 'Runway Show',
-              desc: 'Fashion · Culture · Celebration',
-              href: '/runway',
-            },
-          ].map((item, index) => (
-            <motion.div
-              key={index}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeUp}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
+      {/* Categories Section */}
+      <section className="py-12 px-4">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center text-[#fff]">
+          Shop by Category
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {categoriesList.map((cat) => (
+            <Link
+              key={cat.name}
+              href={`/products?category=${cat.name}`}
+              className="relative rounded-lg  border border-[#fff] overflow-hidden shadow-lg transform transition-transform hover:scale-105"
             >
-              <Link
-                href={item.href}
-                className="block bg-[#181818] p-10 rounded-2xl border border-gray-800 hover:border-[#CDA23B]/60 hover:shadow-[0_0_30px_rgba(205,162,59,0.25)] transition-all group"
-              >
-                <h3 className="text-2xl font-semibold mb-3" style={{ color: gold }}>
-                  {item.day}
-                </h3>
-                <p className="text-xl font-medium mb-2 group-hover:text-white transition">{item.title}</p>
-                <p className="text-gray-400 group-hover:text-gray-300">{item.desc}</p>
-              </Link>
-            </motion.div>
+              <div className="relative w-full h-48">
+                <Image
+                  src={cat.image}
+                  alt={cat.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <span className="text-white text-xl sm:text-2xl font-bold">{cat.name}</span>
+              </div>
+            </Link>
           ))}
-
         </div>
       </section>
 
-      {/* MEDIA HIGHLIGHTS */}
-      <section className="py-24 text-center relative px-6">
-        <motion.h2
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.8 }}
-          className="text-4xl md:text-5xl font-bold mb-12"
-          style={{ color: gold, fontFamily: `'Playfair Display', serif` }}
-        >
-          Event Highlights
-        </motion.h2>
+      {/* Featured Products */}
+      <section className="py-12 px-4">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center text-[#fff]">
+          Featured Products
+        </h2>
 
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative aspect-video mx-auto w-full max-w-5xl overflow-hidden rounded-2xl shadow-xl border border-gray-800"
-        >
-          <iframe
-            title="Five Stars Digital Media — Playlist"
-            src="https://www.youtube.com/embed?list=PLZf5-LylzN7BH2nPMN_rg-wR58lj1nh68"
-            className="w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
-          <span className="absolute top-3 left-3 bg-[#CDA23B] text-black text-xs font-semibold px-3 py-1 rounded">
-            Official Media Partner
-          </span>
-        </motion.div>
+        {loading ? (
+          <p className="text-center opacity-60">Loading featured products...</p>
+        ) : (
+          <div className="relative">
+            <button
+              onClick={() => scrollCarousel("left")}
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 px-3 py-2 bg-[#2A2A2A] rounded hover:bg-[#3C3C3C]"
+            >
+              ◀
+            </button>
 
+            <div ref={carouselRef} className="flex gap-4 overflow-x-auto scrollbar-hide py-2 scroll-smooth">
+              {featured.map((product) => (
+                <div
+                  key={product._id}
+                  className="min-w-[200px] p-3 rounded-lg flex flex-col items-center relative transition-all hover:scale-[1.03]"
+                  style={{ backgroundColor: "#111111", border: "1px solid rgba(255,255,255,0.1)" }}
+                >
+                  {getCartCount(product._id) > 0 && (
+                    <span className="absolute top-2 right-2 bg-amber-500 text-black text-[10px] w-5 h-5 flex items-center justify-center rounded-full">
+                      {getCartCount(product._id)}
+                    </span>
+                  )}
+                  <div className="relative w-full h-40 mb-2 border border-[#1D1D1D] rounded">
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.name}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <h3 className="mb-1 text-sm text-center">{product.name}</h3>
+                  <p className="mb-2 text-xs text-center opacity-80">₦{product.price.toLocaleString()}</p>
+                  <div className="flex gap-2 w-full mt-auto">
+                    <button
+                      onClick={() => handleView(product._id)}
+                      style={buttonStyle}
+                      className="flex-1 text-center hover:border-[#CDA23B]"
+                      onMouseEnter={(e) => hoverEffect(e, "0.7")}
+                      onMouseLeave={(e) => hoverEffect(e, "1")}
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      style={buttonStyle}
+                      className="flex-1 hover:border-[#CDA23B]"
+                      onMouseEnter={(e) => hoverEffect(e, "0.7")}
+                      onMouseLeave={(e) => hoverEffect(e, "1")}
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => scrollCarousel("right")}
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 px-3 py-2 bg-[#2A2A2A] rounded hover:bg-[#3C3C3C]"
+            >
+              ▶
+            </button>
+          </div>
+        )}
       </section>
-
-      {/* SPONSORS */}
-      <section className="py-24 bg-[#101010] text-center border-t border-gray-800">
-        <motion.h2
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.8 }}
-          className="text-3xl md:text-4xl font-bold mb-12"
-          style={{ color: gold, fontFamily: `'Playfair Display', serif` }}
-        >
-          Our Sponsors
-        </motion.h2>
-        <Sponsors />
-      </section>
-    </main>
-  )
+    </div>
+  );
 }
